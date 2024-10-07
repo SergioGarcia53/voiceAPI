@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación Voz a Texto y Texto a Voz</title>
+    <script>
+        // Voz a Texto
+        function startRecognition() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'es-ES';  // Lenguaje español
+
+            recognition.onresult = function(event) {
+                const text = event.results[0][0].transcript;
+                document.getElementById('result').textContent = text;
+                enviarTextoAlBackend(text);  // Enviar texto al backend
+            };
+
+            recognition.start();
+        }
+
+        // Texto a Voz
+        function convertTextToSpeech() {
+            const text = document.getElementById('result').textContent;
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = 'es-ES';  // Configurar el lenguaje a español
+            window.speechSynthesis.speak(speech);
+        }
+
+        // Enviar el texto capturado al backend
+        function enviarTextoAlBackend(text) {
+            fetch('http://127.0.0.1:5000/procesar_texto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ texto: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Respuesta del backend:', data.respuesta);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Conversión de Voz a Texto y Texto a Voz</h1>
+    
+    <!-- Botón para activar la captura de voz -->
+    <button onclick="startRecognition()">Hablar</button>
+    <p id="result">El texto aparecerá aquí</p>
+
+    <!-- Botón para convertir texto a voz -->
+    <button onclick="convertTextToSpeech()">Reproducir Voz</button>
+</body>
+</html>
